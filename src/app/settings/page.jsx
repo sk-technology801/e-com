@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Settings, User, Bell, Palette, Trash2, ShoppingBag, Tag, Mail, HelpCircle, Heart, Package } from 'lucide-react';
@@ -7,19 +7,26 @@ import { useCart } from '../cart-context';
 export default function SettingsPage() {
   const { clearCart, clearWishlist, setIsCartOpen } = useCart();
 
-  // Mock user settings with localStorage persistence
-  const [userSettings, setUserSettings] = useState(() => {
-    const savedSettings = localStorage.getItem('userSettings');
-    return savedSettings
-      ? JSON.parse(savedSettings)
-      : {
-          name: 'John Doe',
-          email: 'john.doe@example.com',
-          address: '123 Luxe Street, Cosmos City, CA 90210',
-          notifications: { email: true, push: false },
-          theme: 'dark',
-        };
-  });
+  // Initialize with default settings
+  const defaultSettings = {
+    name: 'John Doe',
+    email: 'john.doe@example.com',
+    address: '123 Luxe Street, Cosmos City, CA 90210',
+    notifications: { email: true, push: false },
+    theme: 'dark',
+  };
+
+  const [userSettings, setUserSettings] = useState(defaultSettings);
+
+  // Load settings from localStorage only on the client side
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedSettings = localStorage.getItem('userSettings');
+      if (savedSettings) {
+        setUserSettings(JSON.parse(savedSettings));
+      }
+    }
+  }, []);
 
   // Handle form input changes
   const handleInputChange = (e) => {
@@ -47,13 +54,16 @@ export default function SettingsPage() {
       ...prev,
       theme,
     }));
-    // Note: Actual theme switching requires updating the HTML class, which is handled by Tailwind's darkMode: 'class'
-    document.documentElement.classList.toggle('dark', theme === 'dark');
+    if (typeof window !== 'undefined') {
+      document.documentElement.classList.toggle('dark', theme === 'dark');
+    }
   };
 
   // Save settings to localStorage
   useEffect(() => {
-    localStorage.setItem('userSettings', JSON.stringify(userSettings));
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('userSettings', JSON.stringify(userSettings));
+    }
   }, [userSettings]);
 
   // Handle form submission

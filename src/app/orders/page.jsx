@@ -1,42 +1,22 @@
-"use client"
+"use client";
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Package, ShoppingBag, Tag, Mail, HelpCircle, Heart, User } from 'lucide-react';
 import { useCart } from '../cart-context';
 
 export default function OrdersPage() {
-  const { setIsCartOpen } = useCart();
+  const { cart } = useCart();
+  const [orders, setOrders] = useState([]);
 
-  // Mock order data with localStorage persistence
-  const [orders, setOrders] = useState(() => {
-    const savedOrders = localStorage.getItem('orders');
-    return savedOrders
-      ? JSON.parse(savedOrders)
-      : [
-          {
-            id: 'ORD123456',
-            date: 'July 15, 2025',
-            total: 1499.99,
-            status: 'Delivered',
-            items: [
-              { id: 1, name: 'iPhone 15 Pro Max', quantity: 1, price: 1199, image: 'https://placehold.co/100x100' },
-              { id: 2, name: 'Premium Wireless Headphones', quantity: 1, price: 299, image: 'https://placehold.co/100x100' },
-            ],
-          },
-          {
-            id: 'ORD123457',
-            date: 'July 10, 2025',
-            total: 249,
-            status: 'Processing',
-            items: [{ id: 5, name: 'Designer Leather Jacket', quantity: 1, price: 249, image: 'https://placehold.co/100x100' }],
-          },
-        ];
-  });
-
-  // Save orders to localStorage whenever they change
+  // Load orders from localStorage (or API) on client side
   useEffect(() => {
-    localStorage.setItem('orders', JSON.stringify(orders));
-  }, [orders]);
+    if (typeof window !== 'undefined') {
+      const savedOrders = localStorage.getItem('orders');
+      if (savedOrders) {
+        setOrders(JSON.parse(savedOrders));
+      }
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-900 relative overflow-hidden">
@@ -63,7 +43,7 @@ export default function OrdersPage() {
             <Package className="w-8 h-8 text-yellow-400 animate-pulse" />
           </div>
           <p className="text-xl text-white/90 max-w-2xl mx-auto">
-            View and manage your order history.
+            View and manage your recent orders.
           </p>
         </div>
       </section>
@@ -71,81 +51,23 @@ export default function OrdersPage() {
       {/* Orders Section */}
       <section className="py-20 bg-gray-900 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {orders.length === 0 ? (
-            <div className="text-center bg-gray-800/80 backdrop-blur-md rounded-3xl p-8 shadow-lg">
-              <p className="text-xl text-white/90 mb-6">You have no orders yet.</p>
-              <Link
-                href="/shop"
-                className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-2xl font-bold text-lg hover:shadow-[0_0_20px_rgba(124,58,237,0.8)] hover:scale-105 transition-all duration-300"
-              >
-                Start Shopping
-              </Link>
-            </div>
-          ) : (
-            <div className="bg-gray-800/80 backdrop-blur-md rounded-3xl p-8 shadow-lg hover:shadow-[0_15px_40px_rgba(124,58,237,0.6)] transition-all duration-500">
-              <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
-                <Package className="w-6 h-6 text-purple-400 mr-2" />
-                Order History
-              </h2>
-              <div className="space-y-6">
-                {orders.map((order) => (
-                  <div key={order.id} className="border-b border-gray-700 pb-6 last:border-b-0">
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
-                      <div>
-                        <p className="text-sm text-gray-300">Order #{order.id}</p>
-                        <p className="text-lg text-white">{order.date}</p>
-                      </div>
-                      <div className="text-left sm:text-right mt-2 sm:mt-0">
-                        <p className="text-sm text-gray-300">Total: ${order.total.toFixed(2)}</p>
-                        <p className={`text-sm ${order.status === 'Delivered' ? 'text-green-400' : 'text-yellow-400'}`}>
-                          Status: {order.status}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="space-y-4">
-                      {order.items.map((item, index) => (
-                        <div key={index} className="flex items-center space-x-4 bg-gray-900/50 rounded-lg p-4">
-                          <img
-                            src={item.image}
-                            alt={item.name}
-                            width={80}
-                            height={80}
-                            className="w-20 h-20 object-cover rounded-lg"
-                          />
-                          <div className="flex-1">
-                            <p className="text-white font-semibold">{item.name}</p>
-                            <p className="text-sm text-gray-300">Quantity: {item.quantity}</p>
-                            <p className="text-sm text-gray-300">Price: ${item.price.toFixed(2)}</p>
-                          </div>
-                          <button
-                            onClick={() => {
-                              setIsCartOpen(true);
-                              // For demo purposes, simulate reordering by adding to cart
-                              const { id, name, price, image } = item;
-                              window.dispatchEvent(
-                                new CustomEvent('addToCart', {
-                                  detail: { id, name, price, image },
-                                })
-                              );
-                            }}
-                            className="py-2 px-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg text-sm font-semibold hover:shadow-[0_0_10px_rgba(124,58,237,0.7)] hover:scale-105 transition-all duration-300"
-                          >
-                            Reorder
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                    <Link
-                      href={`/support?order=${order.id}`}
-                      className="mt-4 inline-block text-purple-400 hover:underline text-sm"
-                    >
-                      Need help with this order?
-                    </Link>
-                  </div>
+          <div className="bg-gray-800/80 backdrop-blur-md rounded-3xl p-8 shadow-lg hover:shadow-[0_15px_40px_rgba(124,58,237,0.6)] transition-all duration-500">
+            <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
+              <Package className="w-6 h-6 text-purple-400 mr-2" />
+              Recent Orders
+            </h2>
+            {orders.length === 0 ? (
+              <p className="text-gray-300">No orders found.</p>
+            ) : (
+              <ul className="space-y-4">
+                {orders.map((order, index) => (
+                  <li key={index} className="text-gray-300">
+                    Order #{index + 1}: {order.items?.length || 0} items
+                  </li>
                 ))}
-              </div>
-            </div>
-          )}
+              </ul>
+            )}
+          </div>
         </div>
       </section>
 
@@ -157,37 +79,50 @@ export default function OrdersPage() {
               href="/shop"
               className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-2xl font-bold text-lg hover:shadow-[0_0_20px_rgba(124,58,237,0.8)] hover:scale-105 transition-all duration-300"
             >
+              <ShoppingBag className="w-5 h-5 mr-2" />
               Shop All Products
             </Link>
             <Link
               href="/deals"
               className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-2xl font-bold text-lg hover:shadow-[0_0_20px_rgba(237,20,61,0.8)] hover:scale-105 transition-all duration-300"
             >
+              <Tag className="w-5 h-5 mr-2" />
               View Deals
             </Link>
             <Link
               href="/contact"
               className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl font-bold text-lg hover:shadow-[0_0_20px_rgba(59,130,246,0.8)] hover:scale-105 transition-all duration-300"
             >
+              <Mail className="w-5 h-5 mr-2" />
               Contact Us
             </Link>
             <Link
               href="/support"
               className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-2xl font-bold text-lg hover:shadow-[0_0_20px_rgba(124,58,237,0.8)] hover:scale-105 transition-all duration-300"
             >
+              <HelpCircle className="w-5 h-5 mr-2" />
               Support
             </Link>
             <Link
               href="/wishlist"
               className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-pink-600 to-purple-600 text-white rounded-2xl font-bold text-lg hover:shadow-[0_0_20px_rgba(236,72,153,0.8)] hover:scale-105 transition-all duration-300"
             >
+              <Heart className="w-5 h-5 mr-2" />
               Wishlist
             </Link>
             <Link
               href="/account"
               className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-pink-600 text-white rounded-2xl font-bold text-lg hover:shadow-[0_0_20px_rgba(59,130,246,0.8)] hover:scale-105 transition-all duration-300"
             >
+              <User className="w-5 h-5 mr-2" />
               Account
+            </Link>
+            <Link
+              href="/orders"
+              className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-2xl font-bold text-lg hover:shadow-[0_0_20px_rgba(124,58,237,0.8)] hover:scale-105 transition-all duration-300"
+            >
+              <Package className="w-5 h-5 mr-2" />
+              Orders
             </Link>
           </div>
         </div>

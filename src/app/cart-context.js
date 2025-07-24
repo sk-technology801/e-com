@@ -8,6 +8,7 @@ export function CartProvider({ children }) {
   const [wishlist, setWishlist] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
 
+  // Load cart and wishlist from localStorage on client side
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const savedCart = localStorage.getItem('cart');
@@ -17,6 +18,7 @@ export function CartProvider({ children }) {
     }
   }, []);
 
+  // Save cart and wishlist to localStorage when they change
   useEffect(() => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('cart', JSON.stringify(cart));
